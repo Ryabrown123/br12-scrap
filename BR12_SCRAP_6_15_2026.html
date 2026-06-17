@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BR12 Scrap Inventory — June 15, 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --border: #252b3b;
+    --accent: #f5a623;
+    --accent-dim: rgba(245,166,35,0.12);
+    --red: #e05252;
+    --green: #4caf7d;
+    --text: #d4dae8;
+    --muted: #5c6580;
+    --label: #8892aa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header-left .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -.3px;
+  }
+  .header-left .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .date-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--label);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── KPI ROW ── */
+  .kpi-row {
+    display: flex;
+    gap: 1px;
+    border-bottom: 1px solid var(--border);
+    background: var(--border);
+  }
+  .kpi {
+    background: var(--surface);
+    flex: 1;
+    padding: 16px 20px;
+    min-width: 140px;
+  }
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── BODY LAYOUT ── */
+  .body {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: calc(100vh - 120px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .sidebar-title {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 16px 10px;
+  }
+  .filter-group {
+    padding: 0 12px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .filter-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .filter-group input[type="text"],
+  .filter-group select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .filter-group input[type="text"]:focus,
+  .filter-group select:focus {
+    border-color: var(--accent);
+  }
+  .filter-group select option { background: #1e2230; }
+
+  /* category pills */
+  .cat-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cat-pill {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    color: var(--label);
+    background: transparent;
+    transition: all .15s;
+  }
+  .cat-pill.active, .cat-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* top SKU mini-list */
+  .sku-mini { list-style: none; }
+  .sku-mini li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 16px;
+    font-size: 11px;
+    color: var(--label);
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all .1s;
+  }
+  .sku-mini li:hover { background: var(--accent-dim); border-left-color: var(--accent); color: var(--text); }
+  .sku-mini li .sku-name { font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+  .sku-mini li .sku-qty {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 10px;
+  }
+
+  /* ── MAIN TABLE AREA ── */
+  .main {
+    overflow-y: auto;
+    padding: 0;
+  }
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .table-toolbar .results-count {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .sort-btns { display: flex; gap: 6px; }
+  .sort-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--label);
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: all .1s;
+  }
+  .sort-btn.active, .sort-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    position: sticky;
+    top: 45px;
+    background: var(--surface);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th .sort-icon { margin-left: 4px; opacity: .4; }
+  thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tbody tr.highlight { background: var(--accent-dim); }
+
+  td {
+    padding: 9px 16px;
+    vertical-align: top;
+    font-size: 12px;
+  }
+  td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  td.desc { max-width: 320px; color: var(--text); }
+  td.desc .desc-main { font-size: 12px; }
+  td.desc .desc-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  td.qty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    text-align: right;
+  }
+  td.qty.high { color: var(--red); }
+  td.qty.med { color: var(--accent); }
+  td.qty.low { color: var(--green); }
+
+  .type-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: nowrap;
+  }
+  .badge-thhn  { background: rgba(79,140,255,.15); color: #4f8cff; border: 1px solid rgba(79,140,255,.25); }
+  .badge-nmb   { background: rgba(160,100,255,.15); color: #b07aff; border: 1px solid rgba(160,100,255,.25); }
+  .badge-cord  { background: rgba(255,180,50,.12);  color: #f5a623; border: 1px solid rgba(245,166,35,.25); }
+  .badge-alum  { background: rgba(90,200,180,.12);  color: #5ac8b4; border: 1px solid rgba(90,200,180,.25); }
+  .badge-mc    { background: rgba(220,90,90,.12);   color: #e05252; border: 1px solid rgba(220,90,90,.25); }
+  .badge-urd   { background: rgba(120,200,80,.12);  color: #7bc850; border: 1px solid rgba(120,200,80,.25); }
+  .badge-other { background: rgba(100,110,130,.15); color: #8892aa; border: 1px solid rgba(100,110,130,.3); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="eyebrow">GMES · Branch 12</div>
+    <h1>Scrap Wire Inventory</h1>
+    <div class="sub">49 SKU lines across warehouse locations</div>
+  </div>
+  <div class="date-badge">AS OF JUN 15, 2026</div>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-label">Total Scrap Lines</div>
+    <div class="kpi-value">49</div>
+    <div class="kpi-sub">unique lot entries</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total Footage</div>
+    <div class="kpi-value">379</div>
+    <div class="kpi-sub">feet on hand</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Largest Lot</div>
+    <div class="kpi-value" id="kpi-max">—</div>
+    <div class="kpi-sub" id="kpi-max-desc">—</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Product Types</div>
+    <div class="kpi-value" id="kpi-types">—</div>
+    <div class="kpi-sub">wire categories</div>
+  </div>
+</div>
+
+<div class="body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Filters</div>
+
+    <div class="filter-group">
+      <label>Search SKU / Description</label>
+      <input type="text" id="search" placeholder="e.g. THHN, 10-2, aluminum…">
+    </div>
+
+    <div class="filter-group">
+      <label>Product Type</label>
+      <div class="cat-pills" id="cat-pills"></div>
+    </div>
+
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="sort-select">
+        <option value="qty-desc">Qty: High → Low</option>
+        <option value="qty-asc">Qty: Low → High</option>
+        <option value="sku-asc">SKU A → Z</option>
+        <option value="desc-asc">Description A → Z</option>
+      </select>
+    </div>
+
+    <div class="sidebar-title" style="margin-top:8px;">Top Lots by Qty</div>
+    <ul class="sku-mini" id="top-list"></ul>
+  </aside>
+
+  <!-- MAIN TABLE -->
+  <main class="main">
+    <div class="table-toolbar">
+      <span class="results-count" id="results-count">Showing 49 rows</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th data-col="sku">SKU<span class="sort-icon">↕</span></th>
+          <th data-col="desc">Description<span class="sort-icon">↕</span></th>
+          <th data-col="type">Type<span class="sort-icon">↕</span></th>
+          <th data-col="loc">Location / Lot<span class="sort-icon">↕</span></th>
+          <th data-col="qty" style="text-align:right">On-Hand (ft)<span class="sort-icon">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="icon">📭</div>
+      No rows match your filters.
+    </div>
+  </main>
+</div>
+
+<script>
+const RAW = [
+  { sku:".2491",    desc:"10-2NMB W/GROUND WIRE 1000/RL",                   loc:"WR-D-09-B|3",      qty:10 },
+  { sku:".2492",    desc:"14-3NMB W/GROUND WIRE 1000/RL",                   loc:"WR-A-12-E|1",      qty:9  },
+  { sku:".2495",    desc:"10-3NMB W/GROUND WIRE 1000/RL",                   loc:"WR-FL-00-R|2",     qty:3  },
+  { sku:".2495",    desc:"10-3NMB W/GROUND WIRE 1000/RL",                   loc:"WR-D-11-B|1",      qty:10 },
+  { sku:".2616",    desc:"3/0 THHN/THWN-2 STRANDED BLACK COPPER WIRE",      loc:"WR-G-02-B|128",    qty:1  },
+  { sku:".2660",    desc:"SOUTHWIRE 16-3SJO SJEOOW .328 DIA CORD 300V 250/RL", loc:"WR-D-13-B|4",  qty:7  },
+  { sku:".2661",    desc:"SOUTHWIRE 16-4SJO SJEOOW .355 DIA CORD 300V 250/BX", loc:"WR-D-14-B|141228", qty:14 },
+  { sku:".2661",    desc:"SOUTHWIRE 16-4SJO SJEOOW .355 DIA CORD 300V 250/BX", loc:"WR-D-14-B|141230", qty:15 },
+  { sku:".2664",    desc:"SOUTHWIRE 12-3SJO SJEOOW .428 DIA CORD 300V 250/RL", loc:"WR-D-14-B|1",  qty:1  },
+  { sku:".2665",    desc:"SOUTHWIRE 12-4SJO SJEOOW .468 DIA CORD 300V 250/RL", loc:"WR-D-14-B|4",  qty:12 },
+  { sku:".2673",    desc:"SOUTHWIRE 12-4SO .642 DIA SEOOW CORD 600V 250/RL", loc:"WR-D-14-B|11",   qty:15 },
+  { sku:".2702",    desc:"2URD 4-CON DYKE ALUM CABLE 2-2-2-4 1000/RL",      loc:"WR-D-02-B|75",    qty:10 },
+  { sku:".2731",    desc:"2SEU 3-CON ALUMINUM CABLE 2-2-4 1000/RL",          loc:"WR-D-04-B|137984",qty:6  },
+  { sku:".2909",    desc:"350 THHN/THWN-2 STRANDED BLACK COPPER WIRE",       loc:"WR-D-06-A|28",    qty:1  },
+  { sku:".2939",    desc:"SOUTHWIRE 10-3SO .652 DIA SEOOW CORD 600V 250/RL", loc:"WR-B-12-C|1",    qty:4  },
+  { sku:".2939",    desc:"SOUTHWIRE 10-3SO .652 DIA SEOOW CORD 600V 250/RL", loc:"WS-A-06-A|7",    qty:4  },
+  { sku:".2942",    desc:"SOUTHWIRE 6-3SO .73 DIA SOOW CORD 600V 250/RL",    loc:"WR-D-14-B|7",    qty:4  },
+  { sku:".3652",    desc:"2SER 4-CON ALUMINUM CABLE 2-2-2-4 1000/RL",        loc:"WR-D-04-B|6",    qty:4  },
+  { sku:".3653",    desc:"4SER 4-CON ALUMINUM CABLE 4-4-4-6 1000/RL",        loc:"WR-D-03-B|7",    qty:15 },
+  { sku:".4783",    desc:"1/0SER 4-CON ALUMINUM CABLE 1/0-1/0-1/0-2 1000/RL", loc:"WI-R-01-B|20", qty:4  },
+  { sku:".5342",    desc:"8-3UFB W/GROUND WIRE 500/RL",                       loc:"WS-A-01-A|11",  qty:5  },
+  { sku:".6566",    desc:"2 BARE 7-STR GROUND WIRE",                          loc:"WR-A-00-E|1",   qty:15 },
+  { sku:".7369",    desc:"4 THHN/THWN-2 STRANDED GREEN COPPER WIRE 1000/RL",  loc:"WS-B-01-A|8",  qty:5  },
+  { sku:".46290",   desc:"2 THHN/THWN-2 STRANDED GREEN COPPER WIRE",          loc:"WI-Z-03-B|42", qty:6  },
+  { sku:".64286",   desc:"1/0 XHHW-2 STRAND BLACK ALUMINUM WIRE",             loc:"WR-D-05-B|38", qty:15 },
+  { sku:".64286",   desc:"1/0 XHHW-2 STRAND BLACK ALUMINUM WIRE",             loc:"WR-D-05-B|14", qty:2  },
+  { sku:".95785",   desc:"2SER 5-CON ALUMINUM CABLE 2-2-2-2-4 1000/RL",      loc:"WR-C-10-B|116",qty:9  },
+  { sku:".181671",  desc:"6-3UFB W/GROUND WIRE 500/RL",                       loc:"WR-D-09-B|140069",qty:15},
+  { sku:".181671",  desc:"6-3UFB W/GROUND WIRE 500/RL",                       loc:"WI-R-03-A|140068",qty:1 },
+  { sku:".181671",  desc:"6-3UFB W/GROUND WIRE 500/RL",                       loc:"WR-A-11-C|140067",qty:5 },
+  { sku:".181934",  desc:"4\" UL LIQUIDTITE GRAY METAL INTERIOR 100/RL",      loc:"WR-B-07-A|132507",qty:2 },
+  { sku:".188234",  desc:"8-3MC COPPER W/GROUND ALUM CLAD .705 OD 1000/RL",  loc:"WR-A-06-D|144",qty:2  },
+  { sku:".252626",  desc:"1-1/2\" NONMETALLIC LIQUIDTITE 50RL/BX",            loc:"WR-E-01-B|1",  qty:2  },
+  { sku:".274368",  desc:"2/0SER 4-CON ALUMINUM CABLE 2/0-2/0-2/0-1 1000/RL",loc:"WR-D-03-A|9", qty:14 },
+  { sku:".292704",  desc:"8 THHN/THWN-2 STRANDED BROWN COPPER WIRE MASTER REEL 2500/5000", loc:"WR-B-13-B|4", qty:11 },
+  { sku:".575185",  desc:"4-3MC COPPER STRAND W/GROUND ALUM CLAD .935 OD 500/RL", loc:"WR-H-01-A|1", qty:10 },
+  { sku:".1056785", desc:"6-2MC COPPER STRAND W/GROUND ALUM CLAD .727 OD 1000/RL", loc:"WR-A-03-B|139034", qty:12 },
+  { sku:".1089270", desc:"2-4MC COPPER STR W/GROUND ALUM CLAD 1.195 OD 500/RL", loc:"WR-D-08-A|2", qty:12 },
+  { sku:".1089270", desc:"2-4MC COPPER STR W/GROUND ALUM CLAD 1.195 OD 500/RL", loc:"WR-D-08-A|11",qty:8  },
+  { sku:".1149663", desc:"400 XHHW-2 STRAND BLACK ALUMINIUM WIRE",            loc:"WI-Y-02-A|22", qty:15 },
+  { sku:".1270248", desc:"6 THHN/THWN-2 STRANDED BLACK COPPER WIRE MASTER REEL 2500/5000", loc:"WR-A-88-G|137997", qty:1 },
+  { sku:".1270251", desc:"6 THHN/THWN-2 STRANDED RED COPPER WIRE MASTER REEL", loc:"WR-B-16-B|1", qty:6  },
+  { sku:".1270255", desc:"8 THHN/THWN-2 STRANDED BLACK COPPER WIRE MASTER REEL 2500/5000", loc:"WR-B-16-B|140188", qty:3 },
+  { sku:".1270258", desc:"8 THHN/THWN-2 STRANDED GREEN COPPER WIRE MASTER REEL 2500/5000", loc:"WR-A-88-A|0", qty:2  },
+  { sku:".1270264", desc:"4 THHN/THWN-2 STRANDED BLACK COPPER WIRE MASTER REEL", loc:"WR-D-14-A|5", qty:14 },
+  { sku:".1504907", desc:"WARMUP WSR-5/9W SELF-REGULATED CABLE 120V 5/9 WATTS/FT", loc:"WR-D-00-E", qty:5 },
+  { sku:".1656249", desc:"2 THHN/THWN-2 STRANDED WHITE COPPER WIRE",          loc:"WR-D-12-A|81", qty:15 },
+  { sku:".2333736", desc:"M&W GW516-250 5/16\" GUY WIRE 250/RL",              loc:"WR-A-00-A|2",  qty:8  },
+  { sku:".2496297", desc:"1-03TCGAL/18-09-VN GENERATOR CABLE ALUMINUM W/#6 GRN GRD 1.13\" OD BLACK 1000/RL", loc:"WR-H-03-A|140051", qty:10 },
+];
+
+function getType(desc) {
+  const d = desc.toUpperCase();
+  if (d.includes('THHN') || d.includes('THWN') || d.includes('XHHW')) return 'THHN/XHHW';
+  if (d.includes('NMB') || d.includes('UFB'))   return 'NMB/UFB';
+  if (d.includes(' MC ') || d.includes('-MC ') || d.includes('-3MC') || d.includes('-2MC') || d.includes('-4MC')) return 'MC Cable';
+  if (d.includes('SJO') || d.includes('SO ') || d.includes('SER ') || d.includes('SEU ') || d.includes('CORD')) return 'SO/SJO Cord';
+  if (d.includes('URD') || d.includes('ALUM') || d.includes('ALUMINUM') || d.includes('XHHW')) return 'Aluminum';
+  if (d.includes('GUY') || d.includes('BARE') || d.includes('GROUND')) return 'Ground/Guy';
+  if (d.includes('LIQUIDTITE') || d.includes('WARMUP') || d.includes('GENERATOR')) return 'Specialty';
+  return 'Other';
+}
+
+function getBadgeClass(type) {
+  const map = {
+    'THHN/XHHW': 'badge-thhn',
+    'NMB/UFB':   'badge-nmb',
+    'MC Cable':  'badge-mc',
+    'SO/SJO Cord':'badge-cord',
+    'Aluminum':  'badge-alum',
+    'Ground/Guy':'badge-urd',
+    'Specialty': 'badge-other',
+    'Other':     'badge-other',
+  };
+  return map[type] || 'badge-other';
+}
+
+const data = RAW.map(r => ({ ...r, type: getType(r.desc) }));
+
+// KPIs
+const maxRow = [...data].sort((a,b)=>b.qty-a.qty)[0];
+document.getElementById('kpi-max').textContent = maxRow.qty + ' ft';
+document.getElementById('kpi-max-desc').textContent = maxRow.sku;
+const types = [...new Set(data.map(r=>r.type))];
+document.getElementById('kpi-types').textContent = types.length;
+
+// Sidebar top list
+function renderTopList(rows) {
+  const top = [...rows].sort((a,b)=>b.qty-a.qty).slice(0,10);
+  document.getElementById('top-list').innerHTML = top.map(r=>`
+    <li title="${r.desc}">
+      <span class="sku-name">${r.sku}</span>
+      <span class="sku-qty">${r.qty} ft</span>
+    </li>`).join('');
+}
+
+// Category pills
+let activeCat = 'All';
+const allTypes = ['All', ...types];
+document.getElementById('cat-pills').innerHTML = allTypes.map(t=>`
+  <button class="cat-pill${t==='All'?' active':''}" data-cat="${t}">${t}</button>`).join('');
+document.querySelectorAll('.cat-pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    activeCat = btn.dataset.cat;
+    document.querySelectorAll('.cat-pill').forEach(b=>b.classList.toggle('active', b.dataset.cat===activeCat));
+    render();
+  });
+});
+
+// Sort
+let sortCol = 'qty', sortDir = -1;
+document.getElementById('sort-select').addEventListener('change', e=>{
+  const v = e.target.value;
+  if (v==='qty-desc') { sortCol='qty'; sortDir=-1; }
+  if (v==='qty-asc')  { sortCol='qty'; sortDir=1;  }
+  if (v==='sku-asc')  { sortCol='sku'; sortDir=1;  }
+  if (v==='desc-asc') { sortCol='desc'; sortDir=1; }
+  render();
+});
+
+// Search
+document.getElementById('search').addEventListener('input', render);
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let rows = data.filter(r=>{
+    const matchCat = activeCat==='All' || r.type===activeCat;
+    const matchQ   = !q || r.sku.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.loc.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  rows.sort((a,b)=>{
+    const av = a[sortCol], bv = b[sortCol];
+    if (typeof av==='number') return sortDir*(av-bv);
+    return sortDir*String(av).localeCompare(String(bv));
+  });
+
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = rows.map(r=>{
+      const qClass = r.qty >= 12 ? 'high' : r.qty >= 6 ? 'med' : 'low';
+      const [loc, lot] = r.loc.split('|');
+      return `<tr>
+        <td class="mono">${r.sku}</td>
+        <td class="desc">
+          <div class="desc-main">${r.desc}</div>
+        </td>
+        <td><span class="type-badge ${getBadgeClass(r.type)}">${r.type}</span></td>
+        <td class="mono" style="font-size:10px;color:var(--label)">
+          ${loc}<br>${lot ? '<span style="color:var(--muted)">Lot '+lot+'</span>' : ''}
+        </td>
+        <td class="qty ${qClass}">${r.qty}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('results-count').textContent = `Showing ${rows.length} of ${data.length} rows`;
+  renderTopList(rows);
+}
+
+render();
+</script>
+</body>
+</html>
